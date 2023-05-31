@@ -101,7 +101,7 @@ def check_response(response: dict):
 
 
 def parse_status(homework):
-    """Извлекаем статус домашней работы"""
+    """Извлекаем статус домашней работы."""
     status = homework['status']
     if status not in HOMEWORK_VERDICTS:
         logging.error(f'Неизвестный статус: {status}')
