@@ -1,9 +1,7 @@
 import os
 from time import time
-from time import sleep
 import requests
 import logging
-from typing import Dict, Union
 from dotenv import load_dotenv
 import telegram
 import telegram.ext
