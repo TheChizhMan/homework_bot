@@ -72,7 +72,8 @@ def get_api_answer(current_timestamp):
                 f' Код ответа API: {response.status_code}')
             raise exceptions.TheAnswerIsNot200Error(code_api_msg)
         return response.json()
-    except (requests.exceptions.RequestException, json.JSONDecodeError) as error:
+    except (requests.exceptions.RequestException,
+            json.JSONDecodeError) as error:
         raise error
 
 
@@ -166,7 +167,8 @@ def main():
             code_api_msg = f'Код ответа API: {error}'
             logger.error(code_api_msg)
             send_message(bot, f'Ошибка ответа API: {error}')
-        except (requests.exceptions.RequestException, json.JSONDecodeError) as error:
+        except (requests.exceptions.RequestException,
+                json.JSONDecodeError) as error:
             logger.error(f'Ошибка запроса к API: {error}')
             send_message(bot, f'Ошибка запроса к API: {error}')
         finally:
