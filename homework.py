@@ -89,8 +89,8 @@ def get_api_answer(current_timestamp):
 
 def status_homework(status):
     """Проверка статуса работы."""
-    if status not in HOMEWORK_VERDICTS.keys():
-        code_api_msg = f'Ошибка недокументированный статус: {status}'
+    if not HOMEWORK_VERDICTS.get(status):
+        code_api_msg = f'Ошибка, неизвестный статус: {status}'
         logger.error(code_api_msg)
         raise exceptions.UndocumentedStatusError(code_api_msg)
 
