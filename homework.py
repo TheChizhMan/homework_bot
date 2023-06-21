@@ -41,7 +41,7 @@ logger.addHandler(
 
 def check_tokens():
     """Проверка наличия токенов."""
-    logger.info('Начинается проверка наличия токенов.')
+    logger.info('Проверка наличия токенов.')
     return all((PRACTICUM_TOKEN, TELEGRAM_CHAT_ID, TELEGRAM_TOKEN))
 
 
@@ -72,8 +72,7 @@ def get_api_answer(current_timestamp):
                 f' Код ответа API: {response.status_code}')
             raise exceptions.TheAnswerIsNot200Error(code_api_msg)
         return response.json()
-    except (requests.exceptions.RequestException,
-            json.JSONDecodeError) as error:
+    except json.JSONDecodeError as error:
         raise error
 
 
