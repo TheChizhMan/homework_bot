@@ -163,7 +163,8 @@ def main():
     errors = True
     while True:
         try:
-            response = get_api_answer(int(time.time()))
+            current_timestamp = int(time.time())
+            response = get_api_answer(current_timestamp)
             homework = check_response(response)
             if homework and tmp_status != homework['status']:
                 message = parse_status(homework)
