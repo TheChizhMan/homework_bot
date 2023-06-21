@@ -122,7 +122,7 @@ def check_response(response):
         logger.error(code_api_msg)
         raise TypeError(code_api_msg)
 
-    if response['homeworks'] == []:
+    if len(response['homeworks']) == 0:
         return {}
     status_homework(response['homeworks'][0].get('status'))
     return response['homeworks'][0]
