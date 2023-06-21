@@ -8,6 +8,7 @@ import time
 import requests
 import telegram
 from dotenv import load_dotenv
+from http import HTTPStatus
 
 import exceptions
 
@@ -69,7 +70,7 @@ def get_api_answer(current_timestamp):
         response = requests.get(url=ENDPOINT, headers=headers, params=params)
         logger.info(f'Запрос к API сайта {ENDPOINT} с авторизацией {headers} '
                     f'и с параметрами {params}.')
-        if response.status_code != 200:
+        if response.status_code != HTTPStatus.OK:
             code_api_msg = (
                 f'Эндпоинт {ENDPOINT} недоступен.'
                 f' Код ответа API: {response.status_code}')
