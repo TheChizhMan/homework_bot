@@ -62,29 +62,18 @@ def send_message(bot, message):
 
 def get_api_answer(current_timestamp):
     """Получение данных от API Практикума."""
-    logger.info('Старт отправки запроса к API Практикума.')
-
     headers = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
     params = {'from_date': current_timestamp}
     try:
         response = requests.get(url=ENDPOINT, headers=headers, params=params)
-        logger.info(f'Запрос к API сайта {ENDPOINT} с авторизацией {headers} '
-                    f'и с параметрами {params}.')
         if response.status_code != HTTPStatus.OK:
             code_api_msg = (
                 f'Эндпоинт {ENDPOINT} недоступен.'
                 f' Код ответа API: {response.status_code}')
-            logger.error(code_api_msg)
             raise exceptions.TheAnswerIsNot200Error(code_api_msg)
         return response.json()
-    except requests.exceptions.RequestException as request_error:
-        code_api_msg = f'Код ответа API (RequestException): {request_error}'
-        logger.error(code_api_msg)
-        raise exceptions.RequestExceptionError(code_api_msg) from request_error
-    except json.JSONDecodeError as value_error:
-        code_api_msg = f'Код ответа API (ValueError): {value_error}'
-        logger.error(code_api_msg)
-        raise json.JSONDecodeError(code_api_msg) from value_error
+    except (requests.exceptions.RequestException, json.JSONDecodeError) as error:
+        raise error
 
 
 def status_homework(status):
@@ -148,19 +137,21 @@ def parse_status(homework):
 
 def main():
     """Основная логика работы бота."""
+    logger.info('Старт работы бота')
     if not check_tokens():
         logger.critical(
             'Проверьте наличие PRACTICUM_TOKEN, TELEGRAM_TOKEN, '
             'TELEGRAM_CHAT_ID'
         )
         sys.exit("Отсутствует обязательная переменная окружения")
+
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     now = datetime.datetime.now()
     send_message(
         bot,
         f'Я начал свою работу: {now.strftime("%d-%m-%Y %H:%M")}')
     tmp_status = 'reviewing'
-    errors = True
+
     while True:
         try:
             current_timestamp = int(time.time())
@@ -171,12 +162,13 @@ def main():
                 send_message(bot, message)
                 tmp_status = homework['status']
             logger.info('Изменений нет, ждем 10 минут и проверяем API')
-        except Exception as error:
-            message = f'Сбой в работе программы: {error}'
-            if errors:
-                errors = False
-                send_message(bot, message)
-            logger.critical(message)
+        except exceptions.TheAnswerIsNot200Error as error:
+            code_api_msg = f'Код ответа API: {error}'
+            logger.error(code_api_msg)
+            send_message(bot, f'Ошибка ответа API: {error}')
+        except (requests.exceptions.RequestException, json.JSONDecodeError) as error:
+            logger.error(f'Ошибка запроса к API: {error}')
+            send_message(bot, f'Ошибка запроса к API: {error}')
         finally:
             time.sleep(RETRY_PERIOD)
 
