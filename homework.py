@@ -51,7 +51,7 @@ def send_message(bot, message):
         'Отправляем сообщения в телеграм. '
         'Отправка сообщения может завершиться с ошибкой: '
         'сбой сети или ресурса, '
-        'изменится интерфейс (Telegram API). Вернется ошибка.'
+        'изменится интерфейс (Telegram API). Вернется ошибка. '
     )
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
@@ -91,9 +91,9 @@ def status_homework(status):
 def check_response(response):
     """Проверяем данные в response."""
     logger.info(
-        'Начинается проверка данных в response.'
+        'Начинается проверка данных в response. '
         'Проверяется в каком формате перадаются данные запроса к API и ключи '
-        'от полученного запроса. Так же проверяется статус проверки работы.'
+        'от полученного запроса. Так же проверяется статус проверки работы. '
     )
 
     if isinstance(response, list):
@@ -101,18 +101,15 @@ def check_response(response):
 
     if not isinstance(response, dict):
         code_api_msg = 'API передал не словарь'
-        logger.error(code_api_msg)
         raise TypeError(code_api_msg)
 
     missed_keys = {'current_date', 'homeworks'} - response.keys()
     if missed_keys:
         code_api_msg = (f'В ответе API нет ожидаемых ключей: {missed_keys}')
-        logger.error(code_api_msg)
         raise KeyError(code_api_msg)
 
     if not isinstance(response.get('homeworks'), list):
         code_api_msg = 'Содержимое не список'
-        logger.error(code_api_msg)
         raise TypeError(code_api_msg)
 
     if len(response['homeworks']) == 0:
@@ -131,7 +128,6 @@ def parse_status(homework):
     missed_keys = {'homework_name', 'status'} - homework.keys()
     if missed_keys:
         code_api_msg = (f'В ответе API нет ожидаемых ключей: {missed_keys}')
-        logger.error(code_api_msg)
         raise KeyError(code_api_msg)
     status_homework(homework.get('status'))
     homework_name = homework.get('homework_name')

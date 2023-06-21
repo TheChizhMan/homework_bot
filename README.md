@@ -37,7 +37,7 @@ python homework.py
 - Python 3.9.6
 - requests==2.26.0
 - python-dotenv==0.19.0
-- pyTelegramBotAPI==3.8.2
+- python-telegram-bot==13.7
 - logging==0.5.1.2
 
 ## Автор
