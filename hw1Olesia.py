@@ -22,12 +22,12 @@ RETRY_PERIOD = 600
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 
+
 HOMEWORK_VERDICTS = {
     'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
-
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     filename='main.log',
@@ -41,31 +41,35 @@ logger.addHandler(
 
 def check_tokens():
     """Проверка наличия токенов."""
-    logger.info('Проверка наличия токенов.')
+    logger.info('Начинается проверка наличия токенов.')
     return all((PRACTICUM_TOKEN, TELEGRAM_CHAT_ID, TELEGRAM_TOKEN))
 
 
 def send_message(bot, message):
     """Отправка сообщения в Телеграм."""
     logger.info(
-        'Отправляем сообщения в телеграм. '
+        'Начинается отправка сообщения в телеграм. '
         'Отправка сообщения может завершиться с ошибкой: '
-        'сбой сети или ресурса, '
-        'изменится интерфейс (Telegram API). Вернется ошибка. '
+        'может быть плохая сеть, сбой в самом сервисе, '
+        'изменится интерфейс (Telegram API). Выпадет ошибка.'
     )
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
-        logger.debug(f'Отправлено сообщение в Telegram: {message}')
+        logger.debug(f'Сообщение в Telegram отправлено: {message}')
     except telegram.TelegramError as telegram_error:
         logger.error(f'Сообщение в Telegram не отправлено: {telegram_error}')
 
 
 def get_api_answer(current_timestamp):
-    """Получение данных от API Практикума."""
+    """Получение данных с API ЯП."""
+    logger.info('Начинается отправка запроса к API Яндекс Практикума.')
+
     headers = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
     params = {'from_date': current_timestamp}
     try:
         response = requests.get(url=ENDPOINT, headers=headers, params=params)
+        logger.info(f'Запрос к API сайта {ENDPOINT} с авторизацией {headers} '
+                    f'и с параметрами {params}.')
         if response.status_code != HTTPStatus.OK:
             code_api_msg = (
                 f'Эндпоинт {ENDPOINT} недоступен.'
@@ -82,8 +86,8 @@ def get_api_answer(current_timestamp):
 
 def status_homework(status):
     """Проверка статуса работы."""
-    if not HOMEWORK_VERDICTS.get(status):
-        code_api_msg = f'Ошибка, неизвестный статус: {status}'
+    if status not in HOMEWORK_VERDICTS.keys():
+        code_api_msg = f'Ошибка недокументированный статус: {status}'
         logger.error(code_api_msg)
         raise exceptions.UndocumentedStatusError(code_api_msg)
 
@@ -91,14 +95,13 @@ def status_homework(status):
 def check_response(response):
     """Проверяем данные в response."""
     logger.info(
-        'Начинается проверка данных в response. '
+        'Начинается проверка данных в response.'
         'Проверяется в каком формате перадаются данные запроса к API и ключи '
-        'от полученного запроса. Так же проверяется статус проверки работы. '
+        'от полученного запроса. Так же проверяется статус проверки работы.'
     )
 
     if isinstance(response, list):
         logger.info('API передал список')
-
     if not isinstance(response, dict):
         code_api_msg = 'API передал не словарь'
         raise TypeError(code_api_msg)
@@ -112,7 +115,7 @@ def check_response(response):
         code_api_msg = 'Содержимое не список'
         raise TypeError(code_api_msg)
 
-    if len(response['homeworks']) == 0:
+    if response['homeworks'] == []:
         return {}
     status_homework(response['homeworks'][0].get('status'))
     return response['homeworks'][0]
@@ -128,6 +131,7 @@ def parse_status(homework):
     missed_keys = {'homework_name', 'status'} - homework.keys()
     if missed_keys:
         code_api_msg = (f'В ответе API нет ожидаемых ключей: {missed_keys}')
+        logger.error(code_api_msg)
         raise KeyError(code_api_msg)
     status_homework(homework.get('status'))
     homework_name = homework.get('homework_name')
